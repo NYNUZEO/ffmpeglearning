@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <unistd.h> 
+#include <unistd.h>
 
 #ifndef __RDT__
 #define __RDT__
@@ -12,9 +12,9 @@
 //
 //          渲染器          交换
 // 内存图像-》》》》》纹理-》》》》》》》窗口展示
-// 
+//
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     int quit = 1;
     SDL_Init(SDL_INIT_VIDEO);
@@ -25,19 +25,19 @@ int main(int argc, char** argv)
     SDL_Rect rect;
 
     //窗口名， 显示位置x， y， 窗口宽高x， y
-    if(!(window = SDL_CreateWindow("SDL2 WINDOW", 200, 400, 640, 480, SDL_WINDOW_SHOWN)))
+    if (!(window = SDL_CreateWindow("SDL2 WINDOW", 200, 400, 640, 480, SDL_WINDOW_SHOWN)))
     {
         printf("bad create window!");
         goto err_quit;
     }
-    
-    if( !(render = SDL_CreateRenderer(window, -1, 0)) )
+
+    if (!(render = SDL_CreateRenderer(window, -1, 0)))
     {
         printf("bad create render");
         goto err_quit;
     }
 
-   /* 
+    /* 
     SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
     
     //刷/清空render(渲染器)
@@ -59,11 +59,11 @@ int main(int argc, char** argv)
         case SDL_QUIT:
             quit = 0;
             break;
-        
+
         default:
             SDL_Log("event type is %d", event.type);
         }
-        
+
         //设定一个矩形的参数特性
         rect.w = 30;
         rect.h = 30;
@@ -87,17 +87,17 @@ int main(int argc, char** argv)
 
         //窗口显示
         SDL_RenderPresent(render);
-        ++x, ++y;//, ++z;
+        ++x, ++y; //, ++z;
         SDL_Delay(10);
     } while (quit);
-   
+
     //sleep(6000);
 
 err_quit:
-    if(texture) 
+    if (texture)
         SDL_DestroyTexture(texture);
 
-    if(window)
+    if (window)
         SDL_DestroyWindow(window);
 
     SDL_Quit();

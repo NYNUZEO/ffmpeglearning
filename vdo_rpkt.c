@@ -14,21 +14,21 @@
 //STR string 存str文字的大小
 #define ERROR_STR_SIZE 1024
 
-char errinfo[1024] = { 0 };
+char errinfo[1024] = {0};
 
 #define DDug av_log(NULL, AV_LOG_WARNING, "Debug Now!\n");
 
 int main(int argc, char **argv)
 {
 	int err_code = 0;
-	int *stream_mapping = NULL; 
+	int *stream_mapping = NULL;
 	int stream_mapping_size = 0;
 	char *src;
 	char *dst;
 
 	//注册所有组件 新版ffmpeg已经不需要提前注册了
 	//av_register_all();
-	
+
 	//设置日志级别
 	av_log_set_level(AV_LOG_INFO);
 
@@ -48,14 +48,14 @@ int main(int argc, char **argv)
 	src = argv[1];
 	dst = argv[2];
 
-	if (!src || !dst) 
+	if (!src || !dst)
 	{
 		av_log(NULL, AV_LOG_ERROR, "file is null!\n");
 		return -1;
 	}
 
 	//打开输入文件 并赋值给上下文ifmt_ctx
-	if ( (err_code = avformat_open_input(&ifmt_ctx, src, NULL, NULL)) < 0) 
+	if ((err_code = avformat_open_input(&ifmt_ctx, src, NULL, NULL)) < 0)
 	{
 		av_strerror(err_code, errinfo, 1024);
 		av_log(NULL, AV_LOG_ERROR, "Can`t open file! ( %s )\n", errinfo);
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 	}
 
 	//寻找流信息 确定有流
-	if ((err_code = avformat_find_stream_info(ifmt_ctx, NULL)) < 0) 
+	if ((err_code = avformat_find_stream_info(ifmt_ctx, NULL)) < 0)
 	{
 		av_strerror(err_code, errinfo, 1024);
 		av_log(NULL, AV_LOG_ERROR, "Can`t find stream in formation ( %s )\n", errinfo);
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 	av_dump_format(ifmt_ctx, 0, src, 0);
 
 	//建立输出上下文，同时根据dst自动识别后缀构造文件类型
-	avformat_alloc_output_context2(&ofmt_ctx, NULL, NULL, dst); 
+	avformat_alloc_output_context2(&ofmt_ctx, NULL, NULL, dst);
 
 	if (!ofmt_ctx)
 	{
@@ -83,8 +83,8 @@ int main(int argc, char **argv)
 	}
 
 	//初始化映射数组和size 记录哪些流是需要的
-	stream_mapping_size = ifmt_ctx->nb_streams;  
-	stream_mapping = (int*) ( av_malloc_array(stream_mapping_size, sizeof(*stream_mapping)) );
+	stream_mapping_size = ifmt_ctx->nb_streams;
+	stream_mapping = (int *)(av_malloc_array(stream_mapping_size, sizeof(*stream_mapping)));
 	int stream_index = 0;
 
 	if (!stream_mapping)
@@ -99,11 +99,11 @@ int main(int argc, char **argv)
 	for (int i = 0; i < ifmt_ctx->nb_streams; ++i)
 	{
 		AVStream *out_stream = NULL;
-		AVStream *in_stream = ifmt_ctx->streams[i]; //读取对应输入文件的流信息
+		AVStream *in_stream = ifmt_ctx->streams[i];			  //读取对应输入文件的流信息
 		AVCodecParameters *in_codecpar = in_stream->codecpar; //读取当前流的输入编码参数
 
 		//过滤非音频 字幕 视频的流信息
-		int flag =  (in_codecpar->codec_type == AVMEDIA_TYPE_AUDIO) + (in_codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) + (in_codecpar->codec_type == AVMEDIA_TYPE_VIDEO);
+		int flag = (in_codecpar->codec_type == AVMEDIA_TYPE_AUDIO) + (in_codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) + (in_codecpar->codec_type == AVMEDIA_TYPE_VIDEO);
 
 		if (flag <= 0)
 		{
@@ -129,10 +129,10 @@ int main(int argc, char **argv)
 		}
 		out_stream->codecpar->codec_tag = 0;
 	}
-	
+
 	//输出 输出文件的信息
 	av_dump_format(ofmt_ctx, 0, dst, 1);
-	
+
 	if (!(ofmt->flags & AVFMT_NOFILE))
 	{
 		//创建并初始化一个AVIOContext，用以访问dst目录的指定的资源
@@ -142,22 +142,22 @@ int main(int argc, char **argv)
 			return -1;
 		}
 	}
-	
+
 	//写入文件头
 	if ((err_code = avformat_write_header(ofmt_ctx, NULL)) < 0)
 	{
 		av_log(NULL, AV_LOG_ERROR, "Can`t write header\n");
 		return -1;
 	}
-	
+
 	av_init_packet(&pkt);
 
-	printf("%d\n",  &ofmt_ctx->nb_streams);
+	printf("%d\n", &ofmt_ctx->nb_streams);
 
 	while (1)
 	{
 		AVStream *in_stream, *out_stream;
-		
+
 		//循环读入输入文件的packet
 		if ((err_code = av_read_frame(ifmt_ctx, &pkt)) < 0)
 		{
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
 
 		// 将packet中的各时间值从输入流封装格式时间基转换到输出流封装格式时间基
 		av_packet_rescale_ts(&pkt, in_stream->time_base, out_stream->time_base);
-		
+
 		pkt.pos = -1;
 
 		//将packet 写入输出
@@ -200,10 +200,10 @@ int main(int argc, char **argv)
 			av_log(NULL, AV_LOG_ERROR, "Can`t write packet\n");
 			return -1;
 		}
-		
+
 		av_packet_unref(&pkt);
 	}
-	
+
 	//写尾部
 	av_write_trailer(ofmt_ctx);
 
